@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Space Exploration Quiz</title>
+<style>
+:root{
+  --bg:#f4f6fb;--card:#fff;--text:#1b2233;--muted:#6a7289;--border:#dde2ee;
+  --accent:#5b6cff;--good:#22c55e;--bad:#ef4444;--track:#e6e9f4;--shadow:0 10px 30px rgba(30,40,90,.1);
+}
+:root{color-scheme:light dark}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme=light]){--bg:#0a0e1c;--card:#141a30;--text:#e8ecf8;--muted:#8d97b5;--border:#262e4c;--accent:#8794ff;--track:#222a47;--shadow:0 10px 30px rgba(0,0,0,.5)}
+}
+:root[data-theme=dark]{color-scheme:dark;--bg:#0a0e1c;--card:#141a30;--text:#e8ecf8;--muted:#8d97b5;--border:#262e4c;--accent:#8794ff;--track:#222a47;--shadow:0 10px 30px rgba(0,0,0,.5)}
+:root[data-theme=light]{color-scheme:light}
+.head{display:flex;align-items:center;justify-content:space-between;margin:8px 0 18px}
+.head h1{margin:0}
+.theme{width:36px;height:36px;border-radius:50%;border:1px solid var(--border);background:var(--card);font-size:17px;line-height:1;padding:0}
+.theme:hover{border-color:var(--accent)}
+.theme:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+*{box-sizing:border-box}
+body{margin:0;min-height:100vh;display:flex;justify-content:center;padding:24px 16px;
+  font:15px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;color:var(--text);background:var(--bg)}
+main{width:100%;max-width:480px}
+h1{font-size:20px;margin:8px 0 18px;text-align:center}
+.card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:22px;box-shadow:var(--shadow)}
+.meta{display:flex;justify-content:space-between;font-size:13px;color:var(--muted);margin-bottom:8px}
+.bar{position:relative;height:10px;background:var(--track);border-radius:99px;margin-bottom:22px}
+.fill{height:100%;width:0;border-radius:99px;background:linear-gradient(90deg,var(--accent),#c26bff);transition:width .5s ease}
+.rocket{position:absolute;top:50%;left:0;font-size:20px;transform:translate(-50%,-50%) rotate(45deg);transition:left .5s ease}
+.q{font-size:17px;font-weight:600;margin:0 0 16px}
+.opts{display:grid;gap:10px}
+button{font:inherit;color:inherit;cursor:pointer}
+.opt{text-align:left;padding:12px 14px;background:transparent;border:1.5px solid var(--border);border-radius:12px;transition:border-color .15s,background .15s,transform .15s}
+.opt:hover:not(:disabled){border-color:var(--accent);transform:translateY(-1px)}
+.opt:focus-visible,.btn:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.opt:disabled{cursor:default}
+.opt.correct{background:rgba(34,197,94,.18);border-color:var(--good);animation:pop .4s}
+.opt.wrong{background:rgba(239,68,68,.18);border-color:var(--bad);animation:shake .45s}
+.opt.dim{opacity:.55}
+@keyframes shake{0%,100%{transform:translateX(0)}20%{transform:translateX(-8px)}40%{transform:translateX(8px)}60%{transform:translateX(-6px)}80%{transform:translateX(6px)}}
+@keyframes pop{50%{transform:scale(1.04);box-shadow:0 0 0 6px rgba(34,197,94,.25)}}
+.fact{min-height:22px;margin:14px 0 0;font-size:14px;color:var(--muted)}
+.btn{margin-top:14px;width:100%;padding:12px;border:0;border-radius:12px;background:var(--accent);color:#fff;font-weight:600}
+.btn:hover{filter:brightness(1.08)}
+.hidden{display:none}
+.result{text-align:center}
+.emoji{font-size:72px;animation:pop .8s}
+.score{font-size:32px;font-weight:700;margin:6px 0}
+.msg{color:var(--muted);margin:0 0 8px}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<main>
+  <div class="head">
+    <h1>🚀 Space Exploration Quiz</h1>
+    <button class="theme" id="theme" type="button"></button>
+  </div>
+  <div class="card">
+    <section id="quiz">
+      <div class="meta"><span id="count">Question 1 of 10</span><span id="score">Score: 0</span></div>
+      <div class="bar" role="progressbar" aria-valuemin="0" aria-valuemax="10" aria-valuenow="0" id="bar">
+        <div class="fill" id="fill"></div><span class="rocket" id="rocket">🚀</span>
+      </div>
+      <p class="q" id="q"></p>
+      <div class="opts" id="opts"></div>
+      <p class="fact" id="fact" aria-live="polite"></p>
+      <button class="btn hidden" id="next">Next</button>
+    </section>
+    <section class="result hidden" id="result">
+      <div class="emoji" id="emoji"></div>
+      <div class="score" id="final"></div>
+      <p class="msg" id="msg"></p>
+      <button class="btn" id="again">Play again</button>
+    </section>
+  </div>
+</main>
+<script>
+const Q=[
+["Which spacecraft first put humans on the Moon?",["Apollo 11","Vostok 1","Gemini 4","Skylab"],0,"Apollo 11 landed in July 1969."],
+["Who was the first human in space?",["Neil Armstrong","Yuri Gagarin","Alan Shepard","John Glenn"],1,"Gagarin orbited Earth on April 12, 1961."],
+["Which planet has the Great Red Spot?",["Mars","Saturn","Jupiter","Neptune"],2,"It's a storm larger than Earth."],
+["What is the name of NASA's Mars rover that landed in 2021?",["Curiosity","Perseverance","Opportunity","Spirit"],1,"It carried the Ingenuity helicopter."],
+["Which telescope launched in December 2021?",["Hubble","Kepler","Spitzer","James Webb"],3,"JWST observes in infrared from L2."],
+["What was the first artificial satellite?",["Explorer 1","Sputnik 1","Telstar","Vanguard"],1,"Launched by the USSR in 1957."],
+["Which probe left the heliosphere and entered interstellar space first?",["Voyager 1","Pioneer 10","New Horizons","Cassini"],0,"Voyager 1 crossed in 2012."],
+["What is the largest moon of Saturn?",["Europa","Titan","Enceladus","Io"],1,"Titan has a thick atmosphere and methane lakes."],
+["Which space station is currently crewed in low Earth orbit?",["Mir","Skylab","ISS","Salyut"],2,"The ISS has been crewed continuously since 2000."],
+["Which dwarf planet did New Horizons fly past in 2015?",["Ceres","Pluto","Eris","Haumea"],1,"Pluto's heart-shaped region is Tombaugh Regio."]
+];
+const $=id=>document.getElementById(id);
+let i,score,locked;
+function start(){i=0;score=0;$('result').classList.add('hidden');$('quiz').classList.remove('hidden');show()}
+function progress(n){const p=n/Q.length*100;$('fill').style.width=p+'%';$('rocket').style.left=p+'%';$('bar').setAttribute('aria-valuenow',n)}
+function show(){
+  locked=false;const [t,o]=Q[i];
+  $('count').textContent=`Question ${i+1} of ${Q.length}`;$('score').textContent=`Score: ${score}`;
+  $('q').textContent=t;$('fact').textContent='';$('next').classList.add('hidden');
+  $('next').textContent=i===Q.length-1?'See results':'Next';
+  progress(i);
+  const box=$('opts');box.innerHTML='';
+  o.forEach((txt,k)=>{const b=document.createElement('button');b.className='opt';b.textContent=txt;b.onclick=()=>answer(k);box.appendChild(b)});
+    if(i>0)box.firstChild.focus();
+  }
+function answer(k){
+  if(locked)return;locked=true;
+  const [, ,c,f]=Q[i],bs=[...$('opts').children];
+  bs.forEach((b,j)=>{b.disabled=true;if(j===c)b.classList.add('correct');else if(j===k)b.classList.add('wrong');else b.classList.add('dim')});
+  if(k===c)score++;
+  $('score').textContent=`Score: ${score}`;
+  $('fact').textContent=(k===c?'✅ Correct! ':'❌ Not quite. ')+f;
+  progress(i+1);$('next').classList.remove('hidden');$('next').focus();
+}
+$('next').onclick=()=>{i++;i<Q.length?show():finish()};
+function finish(){
+  $('quiz').classList.add('hidden');$('result').classList.remove('hidden');
+  const [e,m]=score===10?['🏆','Mission perfect! Astronaut-level knowledge.']:score>=8?['🚀','Stellar work! Ready for launch.']:score>=6?['🌟','Nice orbit — solid knowledge.']:score>=4?['🛰️','Keep exploring, cadet.']:['☄️','Houston, we have a problem. Try again!'];
+  $('emoji').textContent=e;$('final').textContent=`${score} / ${Q.length}`;$('msg').textContent=m;
+}
+$('again').onclick=start;
+const mq=matchMedia('(prefers-color-scheme:dark)'),root=document.documentElement;
+const saved=()=>{try{return localStorage.getItem('theme')}catch(e){return null}};
+function isDark(){return root.dataset.theme?root.dataset.theme==='dark':mq.matches}
+function paintToggle(){const d=isDark();$('theme').textContent=d?'☀️':'🌙';$('theme').title=$('theme').ariaLabel=d?'Switch to light theme':'Switch to dark theme'}
+if(saved())root.dataset.theme=saved();
+$('theme').onclick=()=>{const t=isDark()?'light':'dark';root.dataset.theme=t;try{localStorage.setItem('theme',t)}catch(e){}paintToggle()};
+mq.onchange=paintToggle;paintToggle();
+start();
+</script>
+</body>
+</html>
