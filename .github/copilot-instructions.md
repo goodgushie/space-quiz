@@ -8,7 +8,8 @@ Space exploration quiz delivered as a single self-contained `index.html` (inline
 
 ## Architecture
 - **Data:** the `Q` array holds the 10 questions as `[question, options[], correctIndex, fact]`. The count is derived from `Q.length`, and the results emoji tiers in `finish()` assume a 10-point score, so adjust those thresholds if the question count changes.
-- **State:** module-level `i` (current question), `score`, `locked` (prevents double answers). Flow is `start()` → `show()` → `answer(k)` → Next → `finish()` → `start()` on "Play again". DOM is re-rendered imperatively via `$()` (getElementById).
+- **Shuffle:** `start()` builds `deck` (shuffled copy of `Q` with shuffled options and remapped correct index); `show()`/`answer()` read `deck`, never `Q`. Shuffle in data, not CSS `order`, to keep tab order correct.
+- **State:** module-level `deck`, `i` (current question), `score`, `locked` (prevents double answers). Flow is `start()` → `show()` → `answer(k)` → Next → `finish()` → `start()` on "Play again". DOM is re-rendered imperatively via `$()` (getElementById).
 - **Progress:** `progress(n)` drives both the bar fill and the 🚀 position, and keeps `aria-valuenow` in sync. It is called with `i` on show and `i+1` after answering.
 - **Theming:** colors are CSS variables on `:root`. Dark values are defined twice on purpose: once in `@media (prefers-color-scheme: dark)` guarded by `:not([data-theme=light])`, and once under `[data-theme=dark]` for the manual toggle. Any new color variable must be added in all three places. The toggle persists to `localStorage` under `theme` (wrapped in try/catch for `file://` restrictions).
 - **Feedback animations:** `.correct` (green + `pop`) and `.wrong` (red + `shake`) classes; `prefers-reduced-motion` disables all animation, so don't rely on animation events for logic.
