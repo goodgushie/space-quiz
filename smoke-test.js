@@ -11,6 +11,10 @@
   start();
 
   check('initial 4 options', opts().length === 4);
+  check('deck is a permutation of Q', deck.length === Q.length && Q.every(q => deck.some(d => d[0] === q[0] && [...d[1]].sort().join() === [...q[1]].sort().join() && d[1][d[2]] === q[1][q[2]])));
+  check('shown options match deck', opts().every((b, k) => b.textContent === deck[0][1][k]));
+  check('shuffle varies across runs', new Set(Array.from({ length: 12 }, () => (start(), deck[0][0]))).size > 1);
+  start();
   check('counter 1 of 10', $('count').textContent === 'Question 1 of 10');
   check('options are tabbable buttons', opts().every(b => b.tagName === 'BUTTON' && b.tabIndex === 0));
   const bodyStyle = getComputedStyle(document.body);
@@ -18,12 +22,12 @@
   check('body font 14-16px', px >= 14 && px <= 16, bodyStyle.fontSize);
   check('column <= 480px', document.querySelector('main').getBoundingClientRect().width <= 480);
 
-  const wrong = Q[0][2] === 3 ? 2 : 3;
+  const wrong = deck[0][2] === 3 ? 2 : 3;
   opts()[1].focus();
   check('focus works', document.activeElement === opts()[1]);
   opts()[wrong].click();
   check('wrong option marked', opts()[wrong].classList.contains('wrong'));
-  check('correct option revealed', opts()[Q[0][2]].classList.contains('correct'));
+  check('correct option revealed', opts()[deck[0][2]].classList.contains('correct'));
   check('score stays 0', $('score').textContent === 'Score: 0');
   check('options disabled', opts().every(b => b.disabled));
   check('shake animation', getComputedStyle(opts()[wrong]).animationName === 'shake');
@@ -34,13 +38,13 @@
   $('next').click();
   check('Q2 shown', $('count').textContent === 'Question 2 of 10');
   check('focus moves to first option', document.activeElement === opts()[0]);
-  opts()[Q[1][2]].click();
-  check('correct +1 and green', $('score').textContent === 'Score: 1' && opts()[Q[1][2]].classList.contains('correct'));
+  opts()[deck[1][2]].click();
+  check('correct +1 and green', $('score').textContent === 'Score: 1' && opts()[deck[1][2]].classList.contains('correct'));
   check('correct fact prefix', $('fact').textContent.startsWith('\u2705'));
-  check('pop animation', getComputedStyle(opts()[Q[1][2]]).animationName === 'pop');
+  check('pop animation', getComputedStyle(opts()[deck[1][2]]).animationName === 'pop');
   check('progress 20%', $('fill').style.width === '20%');
 
-  for (let n = 2; n < Q.length; n++) { $('next').click(); opts()[Q[n][2]].click(); }
+  for (let n = 2; n < deck.length; n++) { $('next').click(); opts()[deck[n][2]].click(); }
   check('last button says See results', $('next').textContent === 'See results');
   check('score 9 before finish', $('score').textContent === 'Score: 9', $('score').textContent);
   check('progress 100%', $('fill').style.width === '100%');

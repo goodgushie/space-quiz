@@ -92,11 +92,13 @@ const Q=[
 ["Which dwarf planet did New Horizons fly past in 2015?",["Ceres","Pluto","Eris","Haumea"],1,"Pluto's heart-shaped region is Tombaugh Regio."]
 ];
 const $=id=>document.getElementById(id);
-let i,score,locked;
-function start(){i=0;score=0;$('result').classList.add('hidden');$('quiz').classList.remove('hidden');show()}
+let i,score,locked,deck;
+function shuffle(a){a=[...a];for(let n=a.length-1;n>0;n--){const j=Math.floor(Math.random()*(n+1));[a[n],a[j]]=[a[j],a[n]]}return a}
+function buildDeck(){return shuffle(Q).map(([t,o,c,f])=>{const idx=shuffle(o.map((_,k)=>k));return [t,idx.map(k=>o[k]),idx.indexOf(c),f]})}
+function start(){deck=buildDeck();i=0;score=0;$('result').classList.add('hidden');$('quiz').classList.remove('hidden');show()}
 function progress(n){const p=n/Q.length*100;$('fill').style.width=p+'%';$('rocket').style.left=p+'%';$('bar').setAttribute('aria-valuenow',n)}
 function show(){
-  locked=false;const [t,o]=Q[i];
+  locked=false;const [t,o]=deck[i];
   $('count').textContent=`Question ${i+1} of ${Q.length}`;$('score').textContent=`Score: ${score}`;
   $('q').textContent=t;$('fact').textContent='';$('next').classList.add('hidden');
   $('next').textContent=i===Q.length-1?'See results':'Next';
@@ -107,7 +109,7 @@ function show(){
   }
 function answer(k){
   if(locked)return;locked=true;
-  const [, ,c,f]=Q[i],bs=[...$('opts').children];
+  const [, ,c,f]=deck[i],bs=[...$('opts').children];
   bs.forEach((b,j)=>{b.disabled=true;if(j===c)b.classList.add('correct');else if(j===k)b.classList.add('wrong');else b.classList.add('dim')});
   if(k===c)score++;
   $('score').textContent=`Score: ${score}`;
